@@ -2,51 +2,56 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CreditCard, Wallet, Bitcoin, Upload, Check, Copy, 
-  ArrowLeft, Building2, Phone, QrCode, AlertCircle
+import {
+  CreditCard, Wallet, Bitcoin, Upload, Check, Copy,
+  ArrowLeft, Building2, Phone, QrCode, AlertCircle,
+  ExternalLink, X, Sparkles,
 } from 'lucide-react';
-import QRCode from 'react-qr-code';
-import { supabase, getUser, uploadReceipt, submitPaymentRequest } from '@/lib/supabaseClient';
-import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import Link from 'next/link';
+import { getTranslation, languageMeta, getDirection } from '@/lib/i18n';
 
+// Payment methods configuration
 const paymentMethods = [
   {
     id: 'FIB',
     name: 'First Iraqi Bank (FIB)',
     icon: <Building2 className="w-6 h-6" />,
-    details: {
-      accountName: 'AIVision Technologies',
-      accountNumber: '1234-5678-9012-3456',
-      iban: 'IQ12 FIBI 1234 5678 9012 3456',
-    },
-    qrData: 'FIB|AIVision|IQ12FIBI1234567890123456|USD|9.99'
+    value: '+9647506045491',
+    label: 'Phone Number',
+    link: 'tel:+9647506045491',
+    qrValue: 'FIB|AIVision|+9647506045491|USD|9.99',
+    color: 'from-blue-600 to-blue-400',
   },
   {
     id: 'FastPay',
     name: 'FastPay Wallet',
     icon: <Phone className="w-6 h-6" />,
-    details: {
-      receiverName: 'AIVision Tech',
-      phoneNumber: '+964 770 123 4567',
-    },
-    qrData: 'FASTPAY|+9647701234567|AIVision|USD|9.99'
+    value: '+9647506045491',
+    label: 'Phone Number',
+    link: 'tel:+9647506045491',
+    qrValue: 'FASTPAY|+9647506045491|AIVision|USD|9.99',
+    color: 'from-green-600 to-green-400',
   },
   {
     id: 'USDT',
     name: 'USDT (TRC20)',
     icon: <Bitcoin className="w-6 h-6" />,
-    details: {
-      walletAddress: 'TXa1B2c3D4e5F6g7H8i9J0kL1mN2oP3qR4sT5uV',
-      network: 'TRC20',
-    },
-    qrData: 'TXa1B2c3D4e5F6g7H8i9J0kL1mN2oP3qR4sT5uV'
-  }
+    value: 'TKUfVwnjyT2KUa9xnBreT32YLLJEwACHpc',
+    label: 'Wallet Address',
+    link: null,
+    qrValue: 'TKUfVwnjyT2KUa9xnBreT32YLLJEwACHpc',
+    color: 'from-orange-600 to-yellow-400',
+    warning: 'Send only USDT on TRC20 network',
+  },
 ];
 
+const languages = Object.entries(languageMeta).map(([code, meta]) => ({
+  code,
+  ...meta,
+}));
+
 export default function CheckoutPage() {
-  const router = useRouter();
+  const [currentLang, setCurrentLang] = useState('EN');
   const [selectedMethod, setSelectedMethod] = useState('FIB');
   const [showQR, setShowQR] = useState(false);
   const [receipt, setReceipt] = useState(null);
@@ -56,22 +61,35 @@ export default function CheckoutPage() {
     transactionId: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
+  const [copiedValue, setCopiedValue] = useState('');
 
+  const dir = getDirection(currentLang);
+  const t = (key) => getTranslation(currentLang, key);
   const currentMethod = paymentMethods.find(m => m.id === selectedMethod);
 
-  const handleCopyAddress = async (text) => {
-    await navigator.clipboard.writeText(text);
-    setIsCopied(true);
-    toast.success('Copied to clipboard!');
-    setTimeout(() => setIsCopied(false), 2000);
+  const handleCopy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedValue(text);
+      setTimeout(() => setCopiedValue(''), 2000);
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopiedValue(text);
+      setTimeout(() => setCopiedValue(''), 2000);
+    }
   };
 
-  const handleFileDrop = async (e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error('File too large. Maximum 5MB allowed.');
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File too large. Maximum 5MB allowed.');
         return;
       }
       setReceipt(file);
@@ -82,68 +100,76 @@ export default function CheckoutPage() {
     e.preventDefault();
     
     if (!receipt) {
-      toast.error('Please upload payment receipt');
+      alert('Please upload payment receipt');
       return;
     }
 
     if (!formData.fullName || !formData.email || !formData.transactionId) {
-      toast.error('Please fill all required fields');
+      alert('Please fill all required fields');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const user = await getUser();
-      if (!user) {
-        router.push('/');
-        return;
-      }
-
-      // Upload receipt
-      const receiptUrl = await uploadReceipt(receipt, user.id);
-
-      // Submit payment request
-      await submitPaymentRequest({
-        user_id: user.id,
-        method: selectedMethod,
-        transaction_id: formData.transactionId,
-        receipt_url: receiptUrl,
-        full_name: formData.fullName,
-        email: formData.email,
-      });
-
-      toast.success('Payment proof submitted successfully! We will verify and activate your Pro account within 24 hours.');
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Redirect to dashboard
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 2000);
+      // Reset form
+      setFormData({ fullName: '', email: '', transactionId: '' });
+      setReceipt(null);
+      setSelectedMethod('FIB');
+      
+      alert(t('checkout.success'));
     } catch (error) {
       console.error('Submission error:', error);
-      toast.error('Failed to submit payment proof. Please try again.');
+      alert('Failed to submit payment proof. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#090D16] text-white">
+    <div className="min-h-screen bg-[#090D16] text-white" dir={dir}>
+      {/* Navigation */}
+      <nav className="sticky top-0 z-40 bg-[#090D16]/80 backdrop-blur-xl border-b border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="flex items-center space-x-2">
+              <Sparkles className="w-6 h-6 text-purple-400" />
+              <span className="text-xl font-bold gradient-text">AIVision</span>
+            </Link>
+
+            <select
+              value={currentLang}
+              onChange={(e) => setCurrentLang(e.target.value)}
+              className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:border-purple-500"
+            >
+              {languages.map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.flag} {lang.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </nav>
+
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Back Button */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center space-x-2 text-gray-400 hover:text-white mb-8 transition-colors"
+        <Link
+          href="/"
+          className="inline-flex items-center space-x-2 text-gray-400 hover:text-white mb-8 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span>Back</span>
-        </button>
+          <span>{t('checkout.back')}</span>
+        </Link>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Payment Methods */}
+          {/* Payment Methods Selection */}
           <div>
-            <h1 className="text-3xl font-bold mb-2">Upgrade to Pro</h1>
-            <p className="text-gray-400 mb-8">$9.99/month - Choose your payment method</p>
+            <h1 className="text-3xl font-bold mb-2">{t('checkout.title')}</h1>
+            <p className="text-gray-400 mb-8">{t('checkout.subtitle')}</p>
 
             <div className="space-y-4">
               {paymentMethods.map((method) => (
@@ -162,19 +188,15 @@ export default function CheckoutPage() {
                   }`}
                 >
                   <div className="flex items-center space-x-4">
-                    <div className={`p-3 rounded-lg ${
-                      selectedMethod === method.id ? 'bg-purple-500/20' : 'bg-gray-800'
-                    }`}>
+                    <div className={`p-3 rounded-lg bg-gradient-to-r ${method.color} bg-opacity-20`}>
                       {method.icon}
                     </div>
-                    <div className="text-left">
+                    <div className="text-left flex-1">
                       <h3 className="font-semibold">{method.name}</h3>
-                      {method.id === 'USDT' && (
-                        <span className="text-sm text-gray-400">Network: TRC20</span>
-                      )}
+                      <p className="text-sm text-gray-400">{method.label}</p>
                     </div>
                     {selectedMethod === method.id && (
-                      <Check className="w-5 h-5 text-purple-400 ml-auto" />
+                      <Check className="w-5 h-5 text-purple-400" />
                     )}
                   </div>
                 </motion.button>
@@ -182,7 +204,7 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Payment Details & Upload */}
+          {/* Payment Details */}
           <div>
             <AnimatePresence mode="wait">
               <motion.div
@@ -192,98 +214,62 @@ export default function CheckoutPage() {
                 exit={{ opacity: 0, x: -20 }}
                 className="bg-[#111827] rounded-2xl border border-gray-800 p-6"
               >
-                <h2 className="text-xl font-bold mb-6">Payment Details</h2>
+                <h2 className="text-xl font-bold mb-6">{t('checkout.paymentDetails')}</h2>
 
-                {/* Bank Account / Wallet Details */}
-                <div className="space-y-4 mb-6">
-                  {selectedMethod === 'FIB' && (
-                    <>
-                      <div className="bg-gray-800 rounded-lg p-4">
-                        <label className="text-sm text-gray-400">Account Name</label>
-                        <p className="font-medium">{currentMethod.details.accountName}</p>
-                      </div>
-                      <div className="bg-gray-800 rounded-lg p-4">
-                        <label className="text-sm text-gray-400">Account Number</label>
-                        <div className="flex items-center justify-between">
-                          <p className="font-medium font-mono">{currentMethod.details.accountNumber}</p>
-                          <button
-                            onClick={() => handleCopyAddress(currentMethod.details.accountNumber)}
-                            className="p-1.5 hover:bg-gray-700 rounded-lg"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="bg-gray-800 rounded-lg p-4">
-                        <label className="text-sm text-gray-400">IBAN</label>
-                        <div className="flex items-center justify-between">
-                          <p className="font-medium font-mono text-sm">{currentMethod.details.iban}</p>
-                          <button
-                            onClick={() => handleCopyAddress(currentMethod.details.iban)}
-                            className="p-1.5 hover:bg-gray-700 rounded-lg"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {selectedMethod === 'FastPay' && (
-                    <>
-                      <div className="bg-gray-800 rounded-lg p-4">
-                        <label className="text-sm text-gray-400">Receiver Name</label>
-                        <p className="font-medium">{currentMethod.details.receiverName}</p>
-                      </div>
-                      <div className="bg-gray-800 rounded-lg p-4">
-                        <label className="text-sm text-gray-400">Phone Number</label>
-                        <div className="flex items-center justify-between">
-                          <p className="font-medium">{currentMethod.details.phoneNumber}</p>
-                          <button
-                            onClick={() => handleCopyAddress(currentMethod.details.phoneNumber)}
-                            className="p-1.5 hover:bg-gray-700 rounded-lg"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {selectedMethod === 'USDT' && (
-                    <div className="bg-gray-800 rounded-lg p-4">
-                      <label className="text-sm text-gray-400">TRC20 Wallet Address</label>
-                      <div className="flex items-center justify-between mt-1">
-                        <p className="font-medium font-mono text-sm break-all">
-                          {currentMethod.details.walletAddress}
-                        </p>
-                        <button
-                          onClick={() => handleCopyAddress(currentMethod.details.walletAddress)}
-                          className={`p-1.5 hover:bg-gray-700 rounded-lg ml-2 ${
-                            isCopied ? 'text-green-400' : ''
-                          }`}
+                {/* Payment Value Display */}
+                <div className="bg-gray-800 rounded-xl p-4 mb-6">
+                  <label className="text-sm text-gray-400 mb-2 block">
+                    {currentMethod.label}
+                  </label>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`font-mono text-sm break-all flex-1 phone-number ${
+                      currentMethod.id === 'USDT' ? 'text-xs' : ''
+                    }`}>
+                      {currentMethod.value}
+                    </p>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => handleCopy(currentMethod.value)}
+                        className={`p-2 rounded-lg transition-colors ${
+                          copiedValue === currentMethod.value
+                            ? 'bg-green-500/20 text-green-400'
+                            : 'bg-gray-700 hover:bg-gray-600'
+                        }`}
+                        title={t('checkout.copyAddress')}
+                      >
+                        {copiedValue === currentMethod.value ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </button>
+                      {currentMethod.link && (
+                        <a
+                          href={currentMethod.link}
+                          className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                          title="Open in app"
                         >
-                          {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                        </button>
-                      </div>
-                      <div className="flex items-center space-x-2 mt-2">
-                        <AlertCircle className="w-4 h-4 text-yellow-400" />
-                        <span className="text-xs text-yellow-400">
-                          Send only USDT on TRC20 network
-                        </span>
-                      </div>
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  {currentMethod.warning && (
+                    <div className="flex items-center space-x-2 mt-3 text-yellow-400">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      <span className="text-xs">{currentMethod.warning}</span>
                     </div>
                   )}
                 </div>
 
-                {/* QR Code */}
+                {/* QR Code Toggle */}
                 <div className="text-center mb-6">
                   <button
                     onClick={() => setShowQR(!showQR)}
-                    className="flex items-center space-x-2 mx-auto text-purple-400 hover:text-purple-300"
+                    className="flex items-center space-x-2 mx-auto text-purple-400 hover:text-purple-300 transition-colors"
                   >
                     <QrCode className="w-5 h-5" />
-                    <span>{showQR ? 'Hide QR Code' : 'Show QR Code'}</span>
+                    <span>{showQR ? t('checkout.hideQR') : t('checkout.showQR')}</span>
                   </button>
                   
                   <AnimatePresence>
@@ -292,137 +278,160 @@ export default function CheckoutPage() {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="mt-4 bg-white p-4 rounded-lg inline-block"
+                        className="mt-4"
                       >
-                        <QRCode value={currentMethod.qrData} size={200} />
+                        <div className="bg-white p-6 rounded-xl inline-block">
+                          {/* QR Code Placeholder */}
+                          <div className="w-48 h-48 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <QrCode className="w-32 h-32 text-gray-800" />
+                          </div>
+                          <p className="text-gray-800 text-sm mt-3 font-mono">
+                            {currentMethod.id === 'USDT' ? currentMethod.value : `Pay $9.99 via ${currentMethod.name}`}
+                          </p>
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
 
-                {/* Amount Info */}
-                <div className="bg-gradient-to-r from-purple-900/30 to-cyan-900/30 rounded-lg p-4 mb-6 border border-purple-500/30">
+                {/* Amount Display */}
+                <div className="bg-gradient-to-r from-purple-900/30 to-cyan-900/30 rounded-xl p-4 mb-6 border border-purple-500/30">
                   <div className="flex justify-between items-center">
-                    <span>Amount to Pay</span>
-                    <span className="text-2xl font-bold">$9.99</span>
+                    <span className="text-gray-300">{t('checkout.amount')}</span>
+                    <span className="text-2xl font-bold ltr-force">$9.99</span>
                   </div>
-                  <p className="text-sm text-gray-400 mt-1">Monthly subscription</p>
+                  <p className="text-sm text-gray-400 mt-1">{t('checkout.monthly')}</p>
                 </div>
 
-                {/* Proof of Payment Form */}
+                {/* Payment Proof Form */}
                 <form onSubmit={handleSubmit}>
-                  <h3 className="text-lg font-semibold mb-4">Submit Payment Proof</h3>
+                  <h3 className="text-lg font-semibold mb-4">{t('checkout.submitProof')}</h3>
                   
                   <div className="space-y-4">
+                    {/* Full Name */}
                     <div>
-                      <label className="block text-sm font-medium mb-2">Full Name *</label>
+                      <label className="block text-sm font-medium mb-2">
+                        {t('checkout.fullName')} *
+                      </label>
                       <input
                         type="text"
                         required
                         value={formData.fullName}
                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
-                        placeholder="Enter your full name"
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white placeholder-gray-500"
+                        placeholder="John Doe"
                       />
                     </div>
 
+                    {/* Email */}
                     <div>
-                      <label className="block text-sm font-medium mb-2">Email *</label>
+                      <label className="block text-sm font-medium mb-2">
+                        {t('checkout.email')} *
+                      </label>
                       <input
                         type="email"
                         required
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white placeholder-gray-500 ltr-force"
                         placeholder="your@email.com"
+                        dir="ltr"
                       />
                     </div>
 
+                    {/* Transaction ID */}
                     <div>
                       <label className="block text-sm font-medium mb-2">
-                        {selectedMethod === 'USDT' ? 'Transaction Hash *' : 'Transaction ID *'}
+                        {t('checkout.transactionId')} *
                       </label>
                       <input
                         type="text"
                         required
                         value={formData.transactionId}
                         onChange={(e) => setFormData({ ...formData, transactionId: e.target.value })}
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 font-mono"
-                        placeholder={selectedMethod === 'USDT' ? 'Enter transaction hash' : 'Enter transaction ID'}
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white placeholder-gray-500 font-mono ltr-force"
+                        placeholder={selectedMethod === 'USDT' ? 'Transaction Hash' : 'Transaction ID'}
+                        dir="ltr"
                       />
                     </div>
 
+                    {/* File Upload */}
                     <div>
-                      <label className="block text-sm font-medium mb-2">Upload Receipt *</label>
+                      <label className="block text-sm font-medium mb-2">
+                        {t('checkout.uploadReceipt')} *
+                      </label>
                       <div
-                        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
                           receipt
                             ? 'border-green-500 bg-green-500/10'
-                            : 'border-gray-700 hover:border-purple-500'
+                            : 'border-gray-700 hover:border-purple-500 hover:bg-purple-500/5'
                         }`}
+                        onClick={() => document.getElementById('receipt-input').click()}
                       >
                         <input
+                          id="receipt-input"
                           type="file"
                           accept="image/*,.pdf"
-                          onChange={handleFileDrop}
+                          onChange={handleFileChange}
                           className="hidden"
-                          id="receipt-upload"
                         />
-                        <label
-                          htmlFor="receipt-upload"
-                          className="cursor-pointer"
-                        >
-                          {receipt ? (
-                            <div>
-                              <Check className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                              <p className="text-sm text-green-400">{receipt.name}</p>
-                              <p className="text-xs text-gray-500 mt-1">Click to change</p>
-                            </div>
-                          ) : (
-                            <div>
-                              <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                              <p className="text-sm text-gray-400">
-                                Drag & drop or click to upload
-                              </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                PNG, JPG, or PDF (max 5MB)
-                              </p>
-                            </div>
-                          )}
-                        </label>
+                        {receipt ? (
+                          <div>
+                            <Check className="w-10 h-10 text-green-400 mx-auto mb-2" />
+                            <p className="text-sm text-green-400 font-medium">{receipt.name}</p>
+                            <p className="text-xs text-gray-500 mt-1">{(receipt.size / 1024 / 1024).toFixed(2)} MB</p>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setReceipt(null);
+                              }}
+                              className="mt-2 text-xs text-red-400 hover:text-red-300"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+                            <p className="text-sm text-gray-400">{t('checkout.dragDrop')}</p>
+                            <p className="text-xs text-gray-500 mt-1">{t('checkout.fileTypes')}</p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
+                    {/* Submit Button */}
                     <button
                       type="submit"
                       disabled={isSubmitting || !receipt}
-                      className="w-full py-3 bg-gradient-to-r from-purple-600 to-cyan-500 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+                      className="w-full py-3 bg-gradient-to-r from-purple-600 to-cyan-500 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-purple-500/25 transition-all flex items-center justify-center"
                     >
                       {isSubmitting ? (
-                        <span className="flex items-center justify-center">
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Submitting...
-                        </span>
+                        <>
+                          <RefreshCw className="w-5 h-5 animate-spin mr-2" />
+                          {t('checkout.submitting')}
+                        </>
                       ) : (
-                        'Submit Payment for Verification'
+                        t('checkout.submit')
                       )}
                     </button>
                   </div>
                 </form>
 
-                <div className="mt-6 p-4 bg-gray-800 rounded-lg">
+                {/* Important Notes */}
+                <div className="mt-6 p-4 bg-gray-800 rounded-xl">
                   <div className="flex items-start space-x-2">
                     <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-gray-400">
-                      <p className="font-medium text-white mb-1">Important:</p>
+                    <div>
+                      <p className="font-medium text-white mb-2 text-sm">{t('checkout.important')}</p>
                       <ul className="space-y-1">
-                        <li>• Verification usually takes 1-24 hours</li>
-                        <li>• Make sure to send the exact amount</li>
-                        <li>• Keep your transaction ID safe</li>
-                        <li>• Contact support if not verified within 24 hours</li>
+                        {t('checkout.notes').map((note, i) => (
+                          <li key={i} className="text-xs text-gray-400 flex items-start space-x-2">
+                            <span className="text-purple-400 mt-0.5">•</span>
+                            <span>{note}</span>
+                          </li>
+                        ))}
                       </ul>
                     </div>
                   </div>
@@ -435,3 +444,6 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+// Need to import RefreshCw for the submit button
+import { RefreshCw } from 'lucide-react';
