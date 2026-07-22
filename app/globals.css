@@ -3,98 +3,37 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    @apply border-gray-800;
-  }
-
   body {
     @apply bg-[#090D16] text-white antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
   }
-
-  /* Force LTR for numbers and specific elements */
-  [dir="rtl"] .ltr-force,
-  [dir="rtl"] .phone-number,
+  [dir="rtl"] .force-ltr,
+  [dir="rtl"] .phone-ltr,
+  [dir="rtl"] .wallet-ltr,
   [dir="rtl"] input[type="tel"],
-  [dir="rtl"] input[type="email"],
-  [dir="rtl"] input[type="number"],
-  [dir="rtl"] .email-address,
-  [dir="rtl"] code,
-  [dir="rtl"] pre,
-  [dir="rtl"] .code-block {
+  [dir="rtl"] input[type="email"] {
     direction: ltr !important;
     text-align: left !important;
     unicode-bidi: embed;
   }
-
-  /* Always LTR for phone numbers */
-  .phone-number {
-    direction: ltr !important;
-    display: inline-block;
-    unicode-bidi: embed;
-  }
-
-  /* Smooth scrolling */
-  html {
-    scroll-behavior: smooth;
-  }
-
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: #111827;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #374151;
-    border-radius: 4px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: #4B5563;
-  }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #111827; }
+  ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
 }
 
 @layer components {
   .gradient-text {
     @apply bg-gradient-to-r from-purple-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent;
   }
-
-  .glass {
-    @apply bg-gray-900/80 backdrop-blur-xl border border-gray-800;
-  }
-
   .btn-primary {
-    @apply px-6 py-3 bg-gradient-to-r from-purple-600 to-cyan-500 rounded-xl font-medium 
-           hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300 
-           transform hover:scale-105 active:scale-95;
+    @apply px-6 py-3 bg-gradient-to-r from-purple-600 to-cyan-500 rounded-xl font-medium hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 active:scale-95;
   }
-
   .btn-secondary {
-    @apply px-6 py-3 border border-gray-700 rounded-xl font-medium 
-           hover:border-purple-500 transition-all duration-300;
+    @apply px-6 py-3 border border-gray-700 rounded-xl font-medium hover:border-purple-500 transition-all duration-300;
   }
-
   .card {
     @apply bg-[#111827] rounded-2xl border border-gray-800 p-6;
   }
-
   .card-hover {
     @apply hover:border-purple-500/50 transition-all duration-300;
-  }
-}
-
-@layer utilities {
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
   }
 }
