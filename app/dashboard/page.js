@@ -2,29 +2,19 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Send, History, Settings, CreditCard, LogOut, Menu, X,
+import {
+  Send, History, CreditCard, LogOut, Menu, X,
   Sparkles, Copy, RefreshCw, Trash2, ChevronDown, Languages,
-  Zap, TrendingUp, Clock, Star, AlertCircle
+  Zap, TrendingUp, Clock, Star, AlertCircle, ArrowLeft,
 } from 'lucide-react';
-import { supabase, getUser, getProfile, checkAndResetDailyCredits, saveToHistory, getHistory } from '@/lib/supabaseClient';
-import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import Link from 'next/link';
+import { getTranslation, languageMeta, getDirection, isRTL } from '@/lib/i18n';
 
-const languages = [
-  { code: 'EN', name: 'English', flag: '🇬🇧', direction: 'ltr' },
-  { code: 'KU-BD', name: 'Kurdish Badini', flag: '🏴', direction: 'rtl' },
-  { code: 'KU-SO', name: 'Kurdish Sorani', flag: '🏴', direction: 'rtl' },
-  { code: 'AR', name: 'Arabic', flag: '🇸🇦', direction: 'rtl' },
-  { code: 'TR', name: 'Turkish', flag: '🇹🇷', direction: 'ltr' },
-  { code: 'FA', name: 'Persian', flag: '🇮🇷', direction: 'rtl' },
-  { code: 'DE', name: 'German', flag: '🇩🇪', direction: 'ltr' },
-  { code: 'FR', name: 'French', flag: '🇫🇷', direction: 'ltr' },
-  { code: 'ES', name: 'Spanish', flag: '🇪🇸', direction: 'ltr' },
-  { code: 'RU', name: 'Russian', flag: '🇷🇺', direction: 'ltr' },
-  { code: 'ZH', name: 'Chinese', flag: '🇨🇳', direction: 'ltr' },
-  { code: 'HI', name: 'Hindi', flag: '🇮🇳', direction: 'ltr' },
-];
+// Language list
+const languages = Object.entries(languageMeta).map(([code, meta]) => ({
+  code,
+  ...meta,
+}));
 
 const tasks = [
   { id: 'generate', label: 'Generate', icon: <Sparkles className="w-4 h-4" /> },
@@ -34,112 +24,76 @@ const tasks = [
 ];
 
 export default function Dashboard() {
-  const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [currentLang, setCurrentLang] = useState('EN');
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('EN');
   const [selectedTask, setSelectedTask] = useState('generate');
   const [isLoading, setIsLoading] = useState(false);
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [creditsRemaining, setCreditsRemaining] = useState(null);
+  const [creditsRemaining, setCreditsRemaining] = useState(5);
   const [isPro, setIsPro] = useState(false);
+  const [copied, setCopied] = useState(false);
   const responseRef = useRef(null);
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
+  const dir = getDirection(currentLang);
+  const t = (key) => getTranslation(currentLang, key);
 
-  const loadUserData = async () => {
-    try {
-      const currentUser = await getUser();
-      if (!currentUser) {
-        router.push('/');
-        return;
-      }
-      setUser(currentUser);
-      
-      const userProfile = await checkAndResetDailyCredits(currentUser.id);
-      setProfile(userProfile);
-      setIsPro(userProfile.subscription_status === 'pro');
-      
-      // Load credits
-      const creditsResponse = await fetch('/api/generate');
-      const creditsData = await creditsResponse.json();
-      setCreditsRemaining(creditsData.creditsRemaining);
-      
-      // Load history
-      const userHistory = await getHistory(currentUser.id);
-      setHistory(userHistory);
-    } catch (error) {
-      console.error('Error loading user data:', error);
-      toast.error('Failed to load user data');
-    }
-  };
+  // Update document direction
+  useEffect(() => {
+    document.documentElement.dir = dir;
+    document.documentElement.lang = currentLang;
+  }, [currentLang, dir]);
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) {
-      toast.error('Please enter a prompt');
-      return;
-    }
+    if (!prompt.trim()) return;
 
     if (prompt.length > 2000) {
-      toast.error('Prompt too long. Maximum 2000 characters.');
+      alert('Prompt too long. Maximum 2000 characters.');
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt,
-          language: selectedLanguage,
-          task: selectedTask,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (data.dailyLimit) {
-          toast.error('Daily limit reached. Upgrade to Pro for unlimited generations!');
-        } else {
-          throw new Error(data.error || 'Generation failed');
-        }
-        return;
+      // Simulate API call for demo
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const demoResponse = {
+        EN: `This is an AI-generated response to: "${prompt}". Our advanced language model provides accurate and context-aware results tailored to your needs.`,
+        'KU-BD': `Ev bersiveke AI-çêkirî ye ji bo: "${prompt}". مۆدێلی زمانی پێشکەوتوی ئێمە ئەنجامە ورد و هۆشیارەکانی کۆنتێکست پێشکەش دەکات کە بەپێی پێداویستییەکانت ڕێکدەخرێت.`,
+      };
+      
+      setResponse(demoResponse[currentLang] || demoResponse.EN);
+      
+      // Update credits
+      if (!isPro) {
+        setCreditsRemaining(prev => Math.max(0, prev - 1));
       }
-
-      setResponse(data.text);
-      setCreditsRemaining(data.creditsRemaining);
       
-      // Reload history
-      const userHistory = await getHistory(user.id);
-      setHistory(userHistory);
+      // Add to history
+      setHistory(prev => [{
+        id: Date.now(),
+        prompt,
+        response: demoResponse[currentLang] || demoResponse.EN,
+        language: currentLang,
+        task: selectedTask,
+        createdAt: new Date().toISOString(),
+      }, ...prev]);
       
-      toast.success('Generated successfully!');
-      
-      // Scroll to response
       if (responseRef.current) {
         responseRef.current.scrollIntoView({ behavior: 'smooth' });
       }
     } catch (error) {
       console.error('Generation error:', error);
-      toast.error(error.message || 'Failed to generate content');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(response);
-    toast.success('Copied to clipboard!');
+  const handleCopy = async (text) => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleClear = () => {
@@ -147,16 +101,10 @@ export default function Dashboard() {
     setResponse('');
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
-  };
-
   const loadHistoryItem = (item) => {
     setPrompt(item.prompt);
     setResponse(item.response);
-    setSelectedLanguage(item.language);
-    setSelectedTask(item.task || 'generate');
+    setSelectedTask(item.task);
     setShowHistory(false);
   };
 
@@ -164,44 +112,48 @@ export default function Dashboard() {
   const maxChars = 2000;
 
   return (
-    <div className="min-h-screen bg-[#090D16] text-white">
-      {/* Top Navigation Bar */}
+    <div className="min-h-screen bg-[#090D16] text-white" dir={dir}>
+      {/* Top Navigation */}
       <nav className="sticky top-0 z-40 bg-[#090D16]/80 backdrop-blur-xl border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setShowSidebar(!showSidebar)}
-                className="lg:hidden p-2 hover:bg-gray-800 rounded-lg"
-              >
-                {showSidebar ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
-              
-              <div className="flex items-center space-x-2">
+              <Link href="/" className="flex items-center space-x-2">
                 <Sparkles className="w-6 h-6 text-purple-400" />
-                <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
-                  AIVision
-                </span>
-              </div>
+                <span className="text-xl font-bold gradient-text hidden sm:inline">AIVision</span>
+              </Link>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               {/* Credit Meter */}
-              {!isPro && (
-                <div className="hidden sm:flex items-center space-x-2 bg-gray-800 px-3 py-1.5 rounded-lg">
-                  <Zap className="w-4 h-4 text-yellow-400" />
-                  <span className="text-sm">
-                    <span className="font-bold">{creditsRemaining || 5}</span>/5
-                  </span>
-                </div>
-              )}
+              <div className="flex items-center space-x-2 bg-gray-800 px-3 py-1.5 rounded-lg">
+                {isPro ? (
+                  <>
+                    <Star className="w-4 h-4 text-purple-400" />
+                    <span className="text-sm text-purple-400">{t('dashboard.unlimited')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4 text-yellow-400" />
+                    <span className="text-sm ltr-force">
+                      <span className="font-bold">{creditsRemaining}</span>/5
+                    </span>
+                  </>
+                )}
+              </div>
 
-              {isPro && (
-                <div className="hidden sm:flex items-center space-x-2 bg-purple-900/30 px-3 py-1.5 rounded-lg border border-purple-500/30">
-                  <Star className="w-4 h-4 text-purple-400" />
-                  <span className="text-sm text-purple-400">Pro</span>
-                </div>
-              )}
+              {/* Language Selector */}
+              <select
+                value={currentLang}
+                onChange={(e) => setCurrentLang(e.target.value)}
+                className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:border-purple-500"
+              >
+                {languages.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.flag} {lang.name}
+                  </option>
+                ))}
+              </select>
 
               <button
                 onClick={() => setShowHistory(!showHistory)}
@@ -215,107 +167,34 @@ export default function Dashboard() {
                 )}
               </button>
 
-              <button
-                onClick={handleSignOut}
-                className="p-2 hover:bg-gray-800 rounded-lg"
-              >
+              <Link href="/" className="p-2 hover:bg-gray-800 rounded-lg">
                 <LogOut className="w-5 h-5" />
-              </button>
+              </Link>
             </div>
           </div>
         </div>
       </nav>
 
       <div className="flex">
-        {/* Sidebar */}
-        <AnimatePresence>
-          {showSidebar && (
-            <motion.aside
-              initial={{ x: -300 }}
-              animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              className="fixed lg:static inset-y-0 left-0 z-30 w-64 bg-[#0B1120] border-r border-gray-800 pt-16 lg:pt-0"
-            >
-              <div className="p-4">
-                {!isPro && (
-                  <div className="mb-6 p-4 bg-gray-800 rounded-xl">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-400">Daily Credits</span>
-                      <span className="text-sm font-bold">{creditsRemaining}/5</span>
-                    </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
-                      <div 
-                        className="bg-gradient-to-r from-purple-500 to-cyan-400 h-2 rounded-full transition-all"
-                        style={{ width: `${((5 - creditsRemaining) / 5) * 100}%` }}
-                      />
-                    </div>
-                    <button
-                      onClick={() => router.push('/checkout')}
-                      className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-purple-600 to-cyan-500 rounded-lg text-sm font-medium"
-                    >
-                      Upgrade to Pro
-                    </button>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <h3 className="text-sm font-semibold text-gray-400 uppercase">Tasks</h3>
-                  {tasks.map((task) => (
-                    <button
-                      key={task.id}
-                      onClick={() => setSelectedTask(task.id)}
-                      className={`w-full flex items-center space-x-3 px-4 py-2 rounded-lg transition-all ${
-                        selectedTask === task.id
-                          ? 'bg-purple-600 text-white'
-                          : 'hover:bg-gray-800 text-gray-400'
-                      }`}
-                    >
-                      {task.icon}
-                      <span>{task.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </motion.aside>
-          )}
-        </AnimatePresence>
-
         {/* Main Content */}
         <div className="flex-1 p-4 lg:p-8">
           <div className="max-w-4xl mx-auto">
-            {/* Language & Task Selector */}
-            <div className="flex flex-wrap gap-3 mb-6">
-              <div className="relative">
-                <select
-                  value={selectedLanguage}
-                  onChange={(e) => setSelectedLanguage(e.target.value)}
-                  className="appearance-none bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 pr-10 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+            {/* Task Selector */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {tasks.map((task) => (
+                <button
+                  key={task.id}
+                  onClick={() => setSelectedTask(task.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 ${
+                    selectedTask === task.id
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  }`}
                 >
-                  {languages.map((lang) => (
-                    <option key={lang.code} value={lang.code}>
-                      {lang.flag} {lang.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none" />
-              </div>
-
-              <div className="flex gap-2">
-                {tasks.map((task) => (
-                  <button
-                    key={task.id}
-                    onClick={() => setSelectedTask(task.id)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 ${
-                      selectedTask === task.id
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                    }`}
-                  >
-                    {task.icon}
-                    <span className="hidden sm:inline">{task.label}</span>
-                  </button>
-                ))}
-              </div>
+                  {task.icon}
+                  <span>{t(`demo.tabs.${task.id}`)}</span>
+                </button>
+              ))}
             </div>
 
             {/* Input Area */}
@@ -323,13 +202,12 @@ export default function Dashboard() {
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder={`Enter your text for ${tasks.find(t => t.id === selectedTask)?.label.toLowerCase()}...`}
+                placeholder={t('demo.placeholder')}
                 className="w-full h-40 bg-gray-800 rounded-lg p-4 text-white placeholder-gray-500 border border-gray-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none"
-                dir={languages.find(l => l.code === selectedLanguage)?.direction}
               />
               
               <div className="flex items-center justify-between mt-4">
-                <span className={`text-sm ${charCount > maxChars ? 'text-red-400' : 'text-gray-500'}`}>
+                <span className={`text-sm ltr-force ${charCount > maxChars ? 'text-red-400' : 'text-gray-500'}`}>
                   {charCount}/{maxChars}
                 </span>
                 
@@ -339,7 +217,7 @@ export default function Dashboard() {
                     className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2"
                   >
                     <Trash2 className="w-4 h-4" />
-                    <span>Clear</span>
+                    <span>{t('demo.clear')}</span>
                   </button>
                   
                   <button
@@ -350,12 +228,12 @@ export default function Dashboard() {
                     {isLoading ? (
                       <>
                         <RefreshCw className="w-4 h-4 animate-spin" />
-                        <span>Generating...</span>
+                        <span>{t('demo.generating')}</span>
                       </>
                     ) : (
                       <>
                         <Send className="w-4 h-4" />
-                        <span>Generate</span>
+                        <span>{t('demo.generate')}</span>
                       </>
                     )}
                   </button>
@@ -374,24 +252,48 @@ export default function Dashboard() {
                   className="bg-[#111827] rounded-2xl border border-gray-800 p-6"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Response</h3>
+                    <h3 className="text-lg font-semibold">{t('demo.result')}</h3>
                     <button
-                      onClick={handleCopy}
+                      onClick={() => handleCopy(response)}
                       className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
                     >
-                      <Copy className="w-4 h-4" />
+                      {copied ? (
+                        <Check className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
-                  
-                  <div 
-                    className="prose prose-invert max-w-none"
-                    dir={languages.find(l => l.code === selectedLanguage)?.direction}
-                  >
-                    {response}
-                  </div>
+                  <div className="whitespace-pre-wrap">{response}</div>
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Upgrade Banner for Free Users */}
+            {!isPro && creditsRemaining <= 2 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 bg-gradient-to-r from-purple-900/30 to-cyan-900/30 rounded-2xl border border-purple-500/30 p-6"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1">
+                      {creditsRemaining === 0 ? t('dashboard.dailyLimit') : `${creditsRemaining} ${t('dashboard.remaining')}`}
+                    </h3>
+                    <p className="text-gray-400 text-sm">
+                      {t('pricing.pro.description')}
+                    </p>
+                  </div>
+                  <Link
+                    href="/checkout"
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-cyan-500 rounded-xl font-medium hover:shadow-lg hover:shadow-purple-500/25 transition-all whitespace-nowrap"
+                  >
+                    {t('dashboard.upgrade')}
+                  </Link>
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
 
@@ -406,7 +308,7 @@ export default function Dashboard() {
             >
               <div className="p-4">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold">History</h3>
+                  <h3 className="text-lg font-semibold">{t('dashboard.history')}</h3>
                   <button
                     onClick={() => setShowHistory(false)}
                     className="p-1 hover:bg-gray-800 rounded-lg"
@@ -418,7 +320,7 @@ export default function Dashboard() {
                 {history.length === 0 ? (
                   <div className="text-center text-gray-500 py-8">
                     <History className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>No history yet</p>
+                    <p>{t('dashboard.noHistory')}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -433,7 +335,7 @@ export default function Dashboard() {
                             {languages.find(l => l.code === item.language)?.flag} {item.language}
                           </span>
                           <span className="text-xs text-gray-500">
-                            {new Date(item.created_at).toLocaleDateString()}
+                            {new Date(item.createdAt).toLocaleDateString()}
                           </span>
                         </div>
                         <p className="text-sm text-gray-300 truncate">{item.prompt}</p>
