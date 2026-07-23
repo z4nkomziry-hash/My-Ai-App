@@ -44,13 +44,14 @@ export default function CheckoutPage() {
   var [logoError, setLogoError] = useState(false);
   var dir = getDirection(lang);
   var t = function(key) { return getTranslation(lang, key); };
-  var current = (methods || []).find(function(m) { return m.id === method; }) || methods[0];
+  var current = ensureArray(methods).find(function(m) { return m.id === method; }) || methods[0];
 
   useEffect(function() {
     document.documentElement.dir = dir;
   }, [dir]);
 
   function handleCopy(text) {
+    if (!text) return;
     navigator.clipboard.writeText(text);
     setCopied(text);
     toast.success(t('checkout.copied'));
