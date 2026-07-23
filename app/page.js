@@ -239,7 +239,7 @@ export default function LandingPage() {
             </h1>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-8">{t('hero.subtitle')}</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/dashboard" className="btn-primary inline-flex items-center">
+              <Link href="/dashboard" className="btn-primary inline-flex items-center justify-center">
                 {t('hero.cta1')}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
@@ -347,8 +347,8 @@ export default function LandingPage() {
                   <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-cyan-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                     {featureIcons[i] || <Sparkles />}
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">{feature?.title}</h3>
-                  <p className="text-gray-400">{feature?.description}</p>
+                  <h3 className="text-xl font-semibold mb-2">{typeof feature === 'object' ? feature?.title : feature}</h3>
+                  <p className="text-gray-400">{typeof feature === 'object' ? feature?.description : ''}</p>
                 </motion.div>
               );
             })}
@@ -463,7 +463,7 @@ export default function LandingPage() {
                 {t('pricing.free.cta')}
               </Link>
             </motion.div>
-            <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="relative card border-purple-500">
+            <motion.div initial={{ opacity: 0, x: 20}} whileInView={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="relative card border-purple-500">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-purple-600 to-cyan-500 rounded-full text-sm font-medium">
                 {t('pricing.pro.badge')}
               </div>
