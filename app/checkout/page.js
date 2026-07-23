@@ -26,6 +26,10 @@ var languagesList = languageEntries.map(function(entry) {
   return { code: entry[0], name: entry[1]?.name, flag: entry[1]?.flag, direction: entry[1]?.direction };
 });
 
+function ensureArray(val) {
+  return Array.isArray(val) ? val : [];
+}
+
 export default function CheckoutPage() {
   var auth = useAuth();
   var user = auth ? auth.user : null;
@@ -103,7 +107,7 @@ export default function CheckoutPage() {
     }
   }
 
-  var checkoutNotes = t('checkout.notes');
+  var checkoutNotes = ensureArray(t('checkout.notes'));
 
   return (
     <div className="min-h-screen bg-[#090D16] text-white" dir={dir}>
@@ -120,7 +124,7 @@ export default function CheckoutPage() {
             <span className="text-xl font-bold gradient-text">AIVision</span>
           </Link>
           <select value={lang} onChange={function(e) { setLang(e.target.value); }} className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm">
-            {(Array.isArray(languagesList) ? languagesList : []).map(function(l) {
+            {ensureArray(languagesList).map(function(l) {
               return <option key={l.code} value={l.code}>{l.flag} {l.name}</option>;
             })}
           </select>
@@ -138,7 +142,7 @@ export default function CheckoutPage() {
             <h1 className="text-3xl font-bold mb-2">{t('checkout.title')}</h1>
             <p className="text-gray-400 mb-8">{t('checkout.subtitle')}</p>
             <div className="space-y-4">
-              {(Array.isArray(methods) ? methods : []).map(function(m) {
+              {ensureArray(methods).map(function(m) {
                 return (
                   <motion.button
                     key={m.id}
@@ -337,7 +341,7 @@ export default function CheckoutPage() {
                     <div>
                       <p className="font-medium text-white mb-2 text-sm">{t('checkout.important')}</p>
                       <ul className="space-y-1">
-                        {(Array.isArray(checkoutNotes) ? checkoutNotes : []).map(function(n, i) {
+                        {checkoutNotes.map(function(n, i) {
                           return (
                             <li key={i} className="text-xs text-gray-400">• {n}</li>
                           );
