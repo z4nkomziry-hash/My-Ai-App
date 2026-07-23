@@ -1,4 +1,7 @@
 'use client';
+
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -18,9 +21,9 @@ var methods = [
   { id: 'USDT', name: 'USDT (TRC20)', icon: <Bitcoin className="w-6 h-6" />, value: 'TKUfVwnjyT2KUa9xnBreT32YLLJEwACHpc', link: null, label: 'Wallet Address', color: 'from-orange-600 to-yellow-400', warning: 'Send only USDT on TRC20 network' }
 ];
 
-var languageEntries = Object.entries(languageMeta);
+var languageEntries = Object.entries(languageMeta || {});
 var languagesList = languageEntries.map(function(entry) {
-  return { code: entry[0], name: entry[1].name, flag: entry[1].flag, direction: entry[1].direction };
+  return { code: entry[0], name: entry[1]?.name, flag: entry[1]?.flag, direction: entry[1]?.direction };
 });
 
 export default function CheckoutPage() {
@@ -100,6 +103,8 @@ export default function CheckoutPage() {
     }
   }
 
+  var checkoutNotes = t('checkout.notes');
+
   return (
     <div className="min-h-screen bg-[#090D16] text-white" dir={dir}>
       <nav className="sticky top-0 z-40 bg-[#090D16]/80 backdrop-blur-xl border-b border-gray-800">
@@ -115,7 +120,7 @@ export default function CheckoutPage() {
             <span className="text-xl font-bold gradient-text">AIVision</span>
           </Link>
           <select value={lang} onChange={function(e) { setLang(e.target.value); }} className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm">
-            {(languagesList || []).map(function(l) {
+            {(Array.isArray(languagesList) ? languagesList : []).map(function(l) {
               return <option key={l.code} value={l.code}>{l.flag} {l.name}</option>;
             })}
           </select>
@@ -133,7 +138,7 @@ export default function CheckoutPage() {
             <h1 className="text-3xl font-bold mb-2">{t('checkout.title')}</h1>
             <p className="text-gray-400 mb-8">{t('checkout.subtitle')}</p>
             <div className="space-y-4">
-              {(methods || []).map(function(m) {
+              {(Array.isArray(methods) ? methods : []).map(function(m) {
                 return (
                   <motion.button
                     key={m.id}
@@ -170,26 +175,26 @@ export default function CheckoutPage() {
                 <h2 className="text-xl font-bold mb-6">{t('checkout.paymentDetails')}</h2>
 
                 <div className="bg-gray-800 rounded-xl p-4 mb-6">
-                  <label className="text-sm text-gray-400 mb-2 block">{current.label}</label>
+                  <label className="text-sm text-gray-400 mb-2 block">{current?.label}</label>
                   <div className="flex items-center justify-between gap-2">
                     <p className={'font-mono text-sm break-all flex-1 wallet-ltr ' + (method === 'USDT' ? 'text-xs' : '')}>
-                      {current.value}
+                      {current?.value}
                     </p>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
-                        onClick={function() { handleCopy(current.value); }}
-                        className={'p-2 rounded-lg transition-colors ' + (copied === current.value ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 hover:bg-gray-600')}
+                        onClick={function() { handleCopy(current?.value); }}
+                        className={'p-2 rounded-lg transition-colors ' + (copied === current?.value ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 hover:bg-gray-600')}
                       >
-                        {copied === current.value ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        {copied === current?.value ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                       </button>
-                      {current.link && (
+                      {current?.link && (
                         <a href={current.link} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
                           <ExternalLink className="w-4 h-4" />
                         </a>
                       )}
                     </div>
                   </div>
-                  {current.warning && (
+                  {current?.warning && (
                     <div className="flex items-center space-x-2 mt-3 text-yellow-400">
                       <AlertCircle className="w-4 h-4 flex-shrink-0" />
                       <span className="text-xs">{current.warning}</span>
@@ -217,7 +222,7 @@ export default function CheckoutPage() {
                           <div className="w-48 h-48 bg-gray-200 rounded-lg flex items-center justify-center">
                             <QrCode className="w-32 h-32 text-gray-800" />
                           </div>
-                          <p className="text-gray-800 text-sm mt-3 font-mono">Pay $9.99 via {current.name}</p>
+                          <p className="text-gray-800 text-sm mt-3 font-mono">Pay $9.99 via {current?.name}</p>
                         </div>
                       </motion.div>
                     )}
@@ -332,7 +337,7 @@ export default function CheckoutPage() {
                     <div>
                       <p className="font-medium text-white mb-2 text-sm">{t('checkout.important')}</p>
                       <ul className="space-y-1">
-                        {(t('checkout.notes') || []).map(function(n, i) {
+                        {(Array.isArray(checkoutNotes) ? checkoutNotes : []).map(function(n, i) {
                           return (
                             <li key={i} className="text-xs text-gray-400">• {n}</li>
                           );
