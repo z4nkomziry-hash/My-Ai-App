@@ -562,10 +562,10 @@ export default function LandingPage() {
                 {/* Developer Avatar */}
                 <div className="relative flex-shrink-0">
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-cyan-500 to-green-400 rounded-full blur-xl opacity-60 animate-pulse" />
-                  <div className="relative w-32 h-32 rounded-full bg-gradient-to-r from-purple-600 via-cyan-500 to-green-400 p-[3px] animate-glow">
+                  <div className="relative w-32 h-32 rounded-full bg-gradient-to-r from-purple-600 via-cyan-500 to-green-400 p-[3px] animate-glow flex items-center justify-center">
                     <SafeImage
-                      src="/assets/developer/zaniyar.jpg"
-                      fallbackSrc="/icon.png"
+                      src="/assets/developer/zaniyar.jpeg"
+                      fallbackSrc="/assets/developer/zaniyar.jpg"
                       alt="Zaniyar Al-Mzurii - Full-Stack Developer"
                       type="developer"
                       width={128}
