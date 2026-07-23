@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, createContext, useContext } from 'react';
-import { supabase, getUser, getProfile } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase-client';
+import { getProfile } from '@/lib/supabase';
 
 export const AuthContext = createContext(null);
 
@@ -12,16 +13,12 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
   useEffect(() => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
     const initAuth = async () => {
       try {
-        const currentUser = await getUser();
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
         setUser(currentUser);
         if (currentUser) {
           const userProfile = await getProfile(currentUser.id);
@@ -33,18 +30,21 @@ export default function AuthProvider({ children }) {
         setLoading(false);
       }
     };
+
     initAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      const currentUser = session?.user || null;
-      setUser(currentUser);
-      if (currentUser) {
-        const userProfile = await getProfile(currentUser.id);
-        setProfile(userProfile);
-      } else {
-        setProfile(null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        const currentUser = session?.user || null;
+        setUser(currentUser);
+        if (currentUser) {
+          const userProfile = await getProfile(currentUser.id);
+          setProfile(userProfile);
+        } else {
+          setProfile(null);
+        }
       }
-    });
+    );
 
     return () => subscription.unsubscribe();
   }, []);
@@ -57,9 +57,7 @@ export default function AuthProvider({ children }) {
   };
 
   const signOut = async () => {
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
+    await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
   };
