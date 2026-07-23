@@ -37,6 +37,11 @@ var demoResponses = {
   TR: 'AI Yanıt: Bu, AIVision\'ın güçlü çok dilli yapay zeka yeteneklerini gösterir.\n\nPlatformumuz, Kürt lehçelerinde özel uzmanlıkla 12 dili destekler.'
 };
 
+// Safe Array Helper Function
+function ensureArray(val) {
+  return Array.isArray(val) ? val : [];
+}
+
 export default function LandingPage() {
   var auth = useAuth();
   var user = auth ? auth.user : null;
@@ -78,7 +83,7 @@ export default function LandingPage() {
     setTimeout(function() { setCopied(''); }, 2000);
   }
 
-  var features = t('features.items');
+  var features = ensureArray(t('features.items'));
   var featureIcons = [
     <Sparkles key="s" />, <Languages key="l" />, <Shield key="sh" />,
     <Zap key="z" />, <Globe key="g" />, <MessageSquare key="m" />
@@ -90,8 +95,8 @@ export default function LandingPage() {
     { v: '<1s', l: t('hero.stats.speed') }
   ];
 
-  var pricingFreeFeatures = t('pricing.free.features');
-  var pricingProFeatures = t('pricing.pro.features');
+  var pricingFreeFeatures = ensureArray(t('pricing.free.features'));
+  var pricingProFeatures = ensureArray(t('pricing.pro.features'));
 
   var contactItems = [
     { icon: <MessageCircle className="w-7 h-7 text-green-400" />, label: t('contact.whatsapp'), href: socialLinks.whatsapp, bg: 'bg-green-500/20' },
@@ -143,7 +148,7 @@ export default function LandingPage() {
                     exit={{ opacity: 0, y: -10 }}
                     className="absolute top-full right-0 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-xl shadow-xl max-h-72 overflow-y-auto z-50"
                   >
-                    {(Array.isArray(languagesList) ? languagesList : []).map(function(l) {
+                    {ensureArray(languagesList).map(function(l) {
                       return (
                         <button
                           key={l.code}
@@ -197,7 +202,7 @@ export default function LandingPage() {
               <a href="#pricing" className="block text-gray-300">{t('nav.pricing')}</a>
               <a href="#contact" className="block text-gray-300">{t('nav.contact')}</a>
               <div className="grid grid-cols-3 gap-2">
-                {(Array.isArray(languagesList) ? languagesList : []).map(function(l) {
+                {ensureArray(languagesList).map(function(l) {
                   return (
                     <button
                       key={l.code}
@@ -242,7 +247,7 @@ export default function LandingPage() {
             </div>
           </motion.div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="grid grid-cols-3 gap-8 max-w-2xl mx-auto mt-16">
-            {(Array.isArray(heroStats) ? heroStats : []).map(function(s, i) {
+            {ensureArray(heroStats).map(function(s, i) {
               return (
                 <div key={i} className="text-center">
                   <div className="text-3xl font-bold text-purple-400">{s.v}</div>
@@ -330,7 +335,7 @@ export default function LandingPage() {
             <p className="text-gray-400 text-lg">{t('features.subtitle')}</p>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(Array.isArray(features) ? features : []).map(function(feature, i) {
+            {features.map(function(feature, i) {
               return (
                 <motion.div
                   key={i}
@@ -389,7 +394,7 @@ export default function LandingPage() {
                     </a>
                   </div>
                   <div className="flex justify-center md:justify-start gap-3">
-                    {(Array.isArray(socialButtons) ? socialButtons : []).map(function(s, i) {
+                    {ensureArray(socialButtons).map(function(s, i) {
                       return (
                         <a key={i} href={s.href} target="_blank" rel="noopener noreferrer" className={'p-2.5 ' + s.bg + ' rounded-xl hover:opacity-80 transition-all'}>
                           {s.icon}
@@ -411,7 +416,7 @@ export default function LandingPage() {
             <p className="text-gray-400 text-lg">{t('languages.subtitle')}</p>
           </motion.div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {(Array.isArray(languagesList) ? languagesList : []).map(function(l, i) {
+            {ensureArray(languagesList).map(function(l, i) {
               return (
                 <motion.div
                   key={l.code}
@@ -445,7 +450,7 @@ export default function LandingPage() {
               </div>
               <p className="text-gray-400 mb-6">{t('pricing.free.description')}</p>
               <ul className="space-y-3 mb-8">
-                {(Array.isArray(pricingFreeFeatures) ? pricingFreeFeatures : []).map(function(f, i) {
+                {pricingFreeFeatures.map(function(f, i) {
                   return (
                     <li key={i} className="flex items-center space-x-2">
                       <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
@@ -469,7 +474,7 @@ export default function LandingPage() {
               </div>
               <p className="text-gray-400 mb-6">{t('pricing.pro.description')}</p>
               <ul className="space-y-3 mb-8">
-                {(Array.isArray(pricingProFeatures) ? pricingProFeatures : []).map(function(f, i) {
+                {pricingProFeatures.map(function(f, i) {
                   return (
                     <li key={i} className="flex items-center space-x-2">
                       <Check className="w-5 h-5 text-purple-400 flex-shrink-0" />
@@ -493,7 +498,7 @@ export default function LandingPage() {
             <p className="text-gray-400 text-lg">{t('contact.subtitle')}</p>
           </motion.div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {(Array.isArray(contactItems) ? contactItems : []).map(function(c, i) {
+            {ensureArray(contactItems).map(function(c, i) {
               return (
                 <a key={i} href={c.href} target="_blank" rel="noopener noreferrer" className="card card-hover text-center group">
                   <div className={'w-14 h-14 ' + c.bg + ' rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300'}>
