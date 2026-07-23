@@ -1,7 +1,4 @@
 'use client';
-
-export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -16,12 +13,14 @@ import toast from 'react-hot-toast';
 import { useAuth } from '@/app/AuthProvider';
 import { getTranslation, languageMeta, getDirection } from '@/lib/i18n';
 
-var languageEntries = Object.entries(languageMeta || {});
-var languagesList = languageEntries.map(function(entry) {
-  return { code: entry[0], name: entry[1]?.name, flag: entry[1]?.flag, direction: entry[1]?.direction };
-});
+const languagesList = Object.entries(languageMeta).map(([code, meta]) => ({
+  code,
+  flag: meta.flag,
+  name: meta.name,
+  direction: meta.direction
+}));
 
-var socialLinks = {
+const socialLinks = {
   whatsapp: 'https://wa.me/9647506045491',
   telegram: 'https://t.me/z_14x',
   email: 'mailto:z.14x@outlook.com',
@@ -29,49 +28,132 @@ var socialLinks = {
   snapchat: 'https://www.snapchat.com/add/al-mzurii?share_id=tK6JgW5VRZq2giNjAVOeuw&locale=en_US'
 };
 
-var demoResponses = {
-  EN: 'AI Response: This demonstrates AIVision\'s powerful multilingual AI capabilities.\n\nOur platform supports 12 languages with specialized Kurdish dialect expertise for Badini and Sorani.',
-  'KU-BD': 'وەڵامی AI: ئەمە توانا بەهێزەکانی AIVision نیشان دەدات.\n\nپلاتفۆرمەکەمان 12 زمان پشتگیری دەکات لەگەڵ شارەزایی تایبەتی شێوەزاری کوردی.',
+const demoResponses = {
+  EN: "AI Response: This demonstrates AIVision's powerful multilingual AI capabilities.\n\nOur platform supports 12 languages with specialized Kurdish dialect expertise.",
+  'KU-BD': 'وەڵامی AI: ئەمە توانا بەهێزەکانی AIVision نیشان دەدات.\n\nپلاتفۆرمەکەمان 12 زمان پشتگیری دەکات.',
   'KU-SO': 'وەڵام: ئەمە تواناکانی AIVision پیشان دەدات.\n\nپلاتفۆرمەکەمان پشتگیری 12 زمان دەکات.',
-  AR: 'رد AI: هذا يوضح قدرات AIVision القوية في الذكاء الاصطناعي متعدد اللغات.\n\nمنصتنا تدعم 12 لغة مع خبرة متخصصة في اللهجات الكردية.',
-  TR: 'AI Yanıt: Bu, AIVision\'ın güçlü çok dilli yapay zeka yeteneklerini gösterir.\n\nPlatformumuz, Kürt lehçelerinde özel uzmanlıkla 12 dili destekler.'
+  AR: 'رد AI: هذا يوضح قدرات AIVision القوية.\n\nمنصتنا تدعم 12 لغة مع خبرة متخصصة في اللهجات الكردية.',
+  TR: "AI Yanıt: Bu, AIVision'ın güçlü çok dilli yapay zeka yeteneklerini gösterir.\n\nPlatformumuz 12 dili destekler."
 };
 
-// Safe Array Helper Function
-function ensureArray(val) {
-  return Array.isArray(val) ? val : [];
+const featureIcons = [Sparkles, Languages, Shield, Zap, Globe, MessageSquare];
+
+const contactItems = [
+  { icon: 'whatsapp', label: 'whatsapp', href: socialLinks.whatsapp, bg: 'bg-green-500/20' },
+  { icon: 'telegram', label: 'telegram', href: socialLinks.telegram, bg: 'bg-blue-500/20' },
+  { icon: 'email', label: 'email', href: socialLinks.email, bg: 'bg-red-500/20' },
+  { icon: 'instagram', label: 'instagram', href: socialLinks.instagram, bg: 'bg-pink-500/20' },
+  { icon: 'snapchat', label: 'snapchat', href: socialLinks.snapchat, bg: 'bg-yellow-500/20' }
+];
+
+const socialButtons = [
+  { icon: 'whatsapp-social', href: socialLinks.whatsapp, bg: 'bg-green-500/20' },
+  { icon: 'telegram-social', href: socialLinks.telegram, bg: 'bg-blue-500/20' },
+  { icon: 'email-social', href: socialLinks.email, bg: 'bg-red-500/20' },
+  { icon: 'instagram-social', href: socialLinks.instagram, bg: 'bg-pink-500/20' },
+  { icon: 'snapchat-social', href: socialLinks.snapchat, bg: 'bg-yellow-500/20' }
+];
+
+const demo = ['generate', 'rewrite', 'grammar', 'translate'];
+
+const heroStatsData = [
+  { v: '12+', labelKey: 'hero.stats.languages' },
+  { v: '99.9%', labelKey: 'hero.stats.accuracy' },
+  { v: '<1s', labelKey: 'hero.stats.speed' }
+];
+
+function ContactIcon({ type, className }) {
+  switch (type) {
+    case 'whatsapp': return <MessageCircle className={className || 'w-7 h-7 text-green-400'} />;
+    case 'telegram': return <Send className={className || 'w-7 h-7 text-blue-400'} />;
+    case 'email': return <Mail className={className || 'w-7 h-7 text-red-400'} />;
+    case 'instagram': return <Instagram className={className || 'w-7 h-7 text-pink-400'} />;
+    case 'snapchat': return <Camera className={className || 'w-7 h-7 text-yellow-400'} />;
+    case 'whatsapp-social': return <MessageCircle className="w-5 h-5 text-green-400" />;
+    case 'telegram-social': return <Send className="w-5 h-5 text-blue-400" />;
+    case 'email-social': return <Mail className="w-5 h-5 text-red-400" />;
+    case 'instagram-social': return <Instagram className="w-5 h-5 text-pink-400" />;
+    case 'snapchat-social': return <Camera className="w-5 h-5 text-yellow-400" />;
+    default: return <Sparkles className={className || 'w-7 h-7'} />;
+  }
 }
 
 export default function LandingPage() {
-  var auth = useAuth();
-  var user = auth ? auth.user : null;
-  var profile = auth ? auth.profile : null;
-  var signOut = auth ? auth.signOut : function() {};
+  const auth = useAuth();
+  const user = auth ? auth.user : null;
+  const profile = auth ? auth.profile : null;
+  const signOutFn = auth ? auth.signOut : function() {};
 
-  var [lang, setLang] = useState('EN');
-  var [menuOpen, setMenuOpen] = useState(false);
-  var [langOpen, setLangOpen] = useState(false);
-  var [demoText, setDemoText] = useState('');
-  var [demoResult, setDemoResult] = useState('');
-  var [demoLoading, setDemoLoading] = useState(false);
-  var [activeTab, setActiveTab] = useState('generate');
-  var [copied, setCopied] = useState('');
-  var [logoError, setLogoError] = useState(false);
-  var [avatarError, setAvatarError] = useState(false);
-  var dir = getDirection(lang);
-  var t = function(key) { return getTranslation(lang, key); };
+  const [lang, setLang] = useState('EN');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const [demoText, setDemoText] = useState('');
+  const [demoResult, setDemoResult] = useState('');
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('generate');
+  const [copied, setCopied] = useState('');
+  const [logoError, setLogoError] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
+
+  const dir = getDirection(lang);
+
+  const t = function(key) {
+    const val = getTranslation(lang, key);
+    if (typeof val === 'string') return val;
+    if (Array.isArray(val)) return val;
+    if (val && typeof val === 'object') {
+      const enVal = getTranslation('EN', key);
+      if (Array.isArray(enVal)) return enVal;
+      return String(key);
+    }
+    return String(val || key);
+  };
+
+  const getFeatures = function() {
+    const val = getTranslation(lang, 'features.items');
+    if (Array.isArray(val)) return val;
+    const enVal = getTranslation('EN', 'features.items');
+    if (Array.isArray(enVal)) return enVal;
+    return [
+      { title: "AI Text Generation", description: "Create high-quality content." },
+      { title: "Precise Translation", description: "Industry-leading translation." },
+      { title: "Grammar Perfection", description: "Advanced grammar correction." },
+      { title: "Lightning Fast", description: "Powered by Google Gemini." },
+      { title: "RTL Support", description: "Full right-to-left support." },
+      { title: "Smart Rewriting", description: "Intelligent text rewriting." }
+    ];
+  };
+
+  const getPricingFreeFeatures = function() {
+    const val = getTranslation(lang, 'pricing.free.features');
+    if (Array.isArray(val)) return val;
+    const enVal = getTranslation('EN', 'pricing.free.features');
+    if (Array.isArray(enVal)) return enVal;
+    return ["5 AI generations per day", "12 language support", "Basic grammar correction", "Standard translation", "Community support"];
+  };
+
+  const getPricingProFeatures = function() {
+    const val = getTranslation(lang, 'pricing.pro.features');
+    if (Array.isArray(val)) return val;
+    const enVal = getTranslation('EN', 'pricing.pro.features');
+    if (Array.isArray(enVal)) return enVal;
+    return ["Unlimited AI generations", "Advanced Kurdish dialect tuning", "Extended context window", "Priority processing speed", "Advanced grammar correction", "Priority support", "Early access to new features"];
+  };
 
   useEffect(function() {
     document.documentElement.dir = dir;
     document.documentElement.lang = lang;
   }, [lang, dir]);
 
+  const features = getFeatures();
+  const pricingFreeFeatures = getPricingFreeFeatures();
+  const pricingProFeatures = getPricingProFeatures();
+
   function runDemo() {
     if (!demoText.trim()) return;
     setDemoLoading(true);
     setTimeout(function() {
-      var resp = demoResponses[lang] || demoResponses['EN'];
-      setDemoResult(resp);
+      setDemoResult(demoResponses[lang] || demoResponses['EN']);
       setDemoLoading(false);
     }, 1200);
   }
@@ -79,40 +161,9 @@ export default function LandingPage() {
   function handleCopy(text) {
     navigator.clipboard.writeText(text);
     setCopied(text);
-    toast.success(t('demo.copied'));
+    toast.success(t('demo.copied') || 'Copied!');
     setTimeout(function() { setCopied(''); }, 2000);
   }
-
-  var features = ensureArray(t('features.items'));
-  var featureIcons = [
-    <Sparkles key="s" />, <Languages key="l" />, <Shield key="sh" />,
-    <Zap key="z" />, <Globe key="g" />, <MessageSquare key="m" />
-  ];
-
-  var heroStats = [
-    { v: '12+', l: t('hero.stats.languages') },
-    { v: '99.9%', l: t('hero.stats.accuracy') },
-    { v: '<1s', l: t('hero.stats.speed') }
-  ];
-
-  var pricingFreeFeatures = ensureArray(t('pricing.free.features'));
-  var pricingProFeatures = ensureArray(t('pricing.pro.features'));
-
-  var contactItems = [
-    { icon: <MessageCircle className="w-7 h-7 text-green-400" />, label: t('contact.whatsapp'), href: socialLinks.whatsapp, bg: 'bg-green-500/20' },
-    { icon: <Send className="w-7 h-7 text-blue-400" />, label: t('contact.telegram'), href: socialLinks.telegram, bg: 'bg-blue-500/20' },
-    { icon: <Mail className="w-7 h-7 text-red-400" />, label: t('contact.email'), href: socialLinks.email, bg: 'bg-red-500/20' },
-    { icon: <Instagram className="w-7 h-7 text-pink-400" />, label: t('contact.instagram'), href: socialLinks.instagram, bg: 'bg-pink-500/20' },
-    { icon: <Camera className="w-7 h-7 text-yellow-400" />, label: t('contact.snapchat'), href: socialLinks.snapchat, bg: 'bg-yellow-500/20' }
-  ];
-
-  var socialButtons = [
-    { icon: <MessageCircle className="w-5 h-5 text-green-400" />, href: socialLinks.whatsapp, bg: 'bg-green-500/20' },
-    { icon: <Send className="w-5 h-5 text-blue-400" />, href: socialLinks.telegram, bg: 'bg-blue-500/20' },
-    { icon: <Mail className="w-5 h-5 text-red-400" />, href: socialLinks.email, bg: 'bg-red-500/20' },
-    { icon: <Instagram className="w-5 h-5 text-pink-400" />, href: socialLinks.instagram, bg: 'bg-pink-500/20' },
-    { icon: <Camera className="w-5 h-5 text-yellow-400" />, href: socialLinks.snapchat, bg: 'bg-yellow-500/20' }
-  ];
 
   return (
     <div className="min-h-screen bg-[#090D16] text-white" dir={dir}>
@@ -148,7 +199,7 @@ export default function LandingPage() {
                     exit={{ opacity: 0, y: -10 }}
                     className="absolute top-full right-0 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-xl shadow-xl max-h-72 overflow-y-auto z-50"
                   >
-                    {ensureArray(languagesList).map(function(l) {
+                    {languagesList.map(function(l) {
                       return (
                         <button
                           key={l.code}
@@ -172,7 +223,7 @@ export default function LandingPage() {
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-cyan-500 flex items-center justify-center text-sm font-bold">
                   {(profile && profile.full_name ? profile.full_name.charAt(0) : (user.email ? user.email.charAt(0) : 'U')).toUpperCase()}
                 </div>
-                <button onClick={signOut} className="text-sm text-gray-400 hover:text-red-400 transition-colors flex items-center">
+                <button onClick={signOutFn} className="text-sm text-gray-400 hover:text-red-400 transition-colors flex items-center">
                   <LogOut className="w-4 h-4 mr-1" />{t('nav.signOut')}
                 </button>
               </div>
@@ -202,7 +253,7 @@ export default function LandingPage() {
               <a href="#pricing" className="block text-gray-300">{t('nav.pricing')}</a>
               <a href="#contact" className="block text-gray-300">{t('nav.contact')}</a>
               <div className="grid grid-cols-3 gap-2">
-                {ensureArray(languagesList).map(function(l) {
+                {languagesList.map(function(l) {
                   return (
                     <button
                       key={l.code}
@@ -217,7 +268,7 @@ export default function LandingPage() {
               {user ? (
                 <>
                   <Link href="/dashboard" className="block w-full text-center py-2 bg-purple-600 rounded-lg">{t('nav.dashboard')}</Link>
-                  <button onClick={signOut} className="block w-full text-center py-2 text-red-400">{t('nav.signOut')}</button>
+                  <button onClick={signOutFn} className="block w-full text-center py-2 text-red-400">{t('nav.signOut')}</button>
                 </>
               ) : (
                 <>
@@ -239,7 +290,7 @@ export default function LandingPage() {
             </h1>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-8">{t('hero.subtitle')}</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/dashboard" className="btn-primary inline-flex items-center justify-center">
+              <Link href="/dashboard" className="btn-primary inline-flex items-center">
                 {t('hero.cta1')}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
@@ -247,11 +298,11 @@ export default function LandingPage() {
             </div>
           </motion.div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="grid grid-cols-3 gap-8 max-w-2xl mx-auto mt-16">
-            {ensureArray(heroStats).map(function(s, i) {
+            {heroStatsData.map(function(s, i) {
               return (
                 <div key={i} className="text-center">
                   <div className="text-3xl font-bold text-purple-400">{s.v}</div>
-                  <div className="text-gray-500 text-sm">{s.l}</div>
+                  <div className="text-gray-500 text-sm">{t(s.labelKey)}</div>
                 </div>
               );
             })}
@@ -261,13 +312,13 @@ export default function LandingPage() {
 
       <section id="demo" className="py-20 bg-[#0B1120]">
         <div className="max-w-4xl mx-auto px-4">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="text-center mb-12">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">{t('demo.title')}</h2>
             <p className="text-gray-400">{t('demo.subtitle')}</p>
           </motion.div>
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} className="card p-6">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="card p-6">
             <div className="flex flex-wrap gap-2 mb-6">
-              {['generate', 'rewrite', 'grammar', 'translate'].map(function(tab) {
+              {demo.map(function(tab) {
                 return (
                   <button
                     key={tab}
@@ -330,25 +381,27 @@ export default function LandingPage() {
 
       <section id="features" className="py-20">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="text-center mb-16">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">{t('features.title')}</h2>
             <p className="text-gray-400 text-lg">{t('features.subtitle')}</p>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map(function(feature, i) {
+              const IconComponent = featureIcons[i] || Sparkles;
               return (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
                   className="card card-hover group"
                 >
                   <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-cyan-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                    {featureIcons[i] || <Sparkles />}
+                    <IconComponent className="w-6 h-6" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">{typeof feature === 'object' ? feature?.title : feature}</h3>
-                  <p className="text-gray-400">{typeof feature === 'object' ? feature?.description : ''}</p>
+                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-gray-400">{feature.description}</p>
                 </motion.div>
               );
             })}
@@ -358,7 +411,7 @@ export default function LandingPage() {
 
       <section className="py-20 bg-[#0B1120]">
         <div className="max-w-4xl mx-auto px-4">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} className="relative">
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-cyan-500/20 to-green-400/20 rounded-3xl blur-3xl" />
             <div className="relative card p-8 md:p-12 border-purple-500/30">
               <div className="flex flex-col md:flex-row items-center gap-8">
@@ -394,10 +447,10 @@ export default function LandingPage() {
                     </a>
                   </div>
                   <div className="flex justify-center md:justify-start gap-3">
-                    {ensureArray(socialButtons).map(function(s, i) {
+                    {socialButtons.map(function(s, i) {
                       return (
                         <a key={i} href={s.href} target="_blank" rel="noopener noreferrer" className={'p-2.5 ' + s.bg + ' rounded-xl hover:opacity-80 transition-all'}>
-                          {s.icon}
+                          <ContactIcon type={s.icon} />
                         </a>
                       );
                     })}
@@ -411,17 +464,18 @@ export default function LandingPage() {
 
       <section id="languages" className="py-20">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="text-center mb-16">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">{t('languages.title')}</h2>
             <p className="text-gray-400 text-lg">{t('languages.subtitle')}</p>
           </motion.div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {ensureArray(languagesList).map(function(l, i) {
+            {languagesList.map(function(l, i) {
               return (
                 <motion.div
                   key={l.code}
                   initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
                   transition={{ delay: i * 0.05 }}
                   className={'bg-[#111827] rounded-xl p-4 text-center border border-gray-800 hover:border-purple-500/50 transition-all duration-300 ' + (l.code.startsWith('KU') ? 'ring-2 ring-purple-500/30' : '')}
                 >
@@ -437,12 +491,12 @@ export default function LandingPage() {
 
       <section id="pricing" className="py-20 bg-[#0B1120]">
         <div className="max-w-5xl mx-auto px-4">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="text-center mb-16">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">{t('pricing.title')}</h2>
             <p className="text-gray-400 text-lg">{t('pricing.subtitle')}</p>
           </motion.div>
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="card">
+            <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="card">
               <h3 className="text-2xl font-bold mb-2">{t('pricing.free.name')}</h3>
               <div className="mb-4">
                 <span className="text-4xl font-bold">{t('pricing.free.price')}</span>
@@ -463,7 +517,7 @@ export default function LandingPage() {
                 {t('pricing.free.cta')}
               </Link>
             </motion.div>
-            <motion.div initial={{ opacity: 0, x: 20}} whileInView={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="relative card border-purple-500">
+            <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="relative card border-purple-500">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-purple-600 to-cyan-500 rounded-full text-sm font-medium">
                 {t('pricing.pro.badge')}
               </div>
@@ -493,18 +547,18 @@ export default function LandingPage() {
 
       <section id="contact" className="py-20">
         <div className="max-w-4xl mx-auto px-4">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="text-center mb-12">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">{t('contact.title')}</h2>
             <p className="text-gray-400 text-lg">{t('contact.subtitle')}</p>
           </motion.div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {ensureArray(contactItems).map(function(c, i) {
+            {contactItems.map(function(c, i) {
               return (
                 <a key={i} href={c.href} target="_blank" rel="noopener noreferrer" className="card card-hover text-center group">
                   <div className={'w-14 h-14 ' + c.bg + ' rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300'}>
-                    {c.icon}
+                    <ContactIcon type={c.icon} />
                   </div>
-                  <span className="text-sm font-medium">{c.label}</span>
+                  <span className="text-sm font-medium">{t('contact.' + c.label)}</span>
                 </a>
               );
             })}
