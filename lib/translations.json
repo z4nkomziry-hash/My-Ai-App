@@ -1,0 +1,106 @@
+{
+  "EN": {
+    "nav": {
+      "home": "Home",
+      "features": "Features",
+      "languages": "Languages",
+      "pricing": "Pricing",
+      "contact": "Contact",
+      "dashboard": "Dashboard",
+      "tryFree": "Try Free",
+      "signIn": "Sign In",
+      "signOut": "Sign Out"
+    }
+  },
+  "KU-BD": {
+    "nav": {
+      "home": "سەرەکی",
+      "features": "تایبەتمەندییەکان",
+      "languages": "زمانەکان",
+      "pricing": "نرخەکان",
+      "contact": "پەیوەندی",
+      "dashboard": "داشبۆرد",
+      "tryFree": "بەخۆڕایی تاقیبکەرەوە",
+      "signIn": "چوونەژوورەوە",
+      "signOut": "چوونەدەرەوە"
+    }
+  },
+  "KU-SO": {
+    "nav": {
+      "home": "ماڵەوە",
+      "features": "تایبەتمەندییەکان",
+      "languages": "زمانەکان",
+      "pricing": "نرخەکان",
+      "contact": "پەیوەندی",
+      "dashboard": "داشبۆرد",
+      "tryFree": "بە خۆڕایی تاقی بکەرەوە",
+      "signIn": "چوونەژوورەوە",
+      "signOut": "چوونەدەرەوە"
+    }
+  },
+  "AR": {
+    "nav": {
+      "home": "الرئيسية",
+      "features": "المميزات",
+      "languages": "اللغات",
+      "pricing": "الأسعار",
+      "contact": "اتصل بنا",
+      "dashboard": "لوحة التحكم",
+      "tryFree": "تجربة مجانية",
+      "signIn": "تسجيل الدخول",
+      "signOut": "تسجيل الخروج"
+    }
+  },
+  "TR": {
+    "nav": {
+      "home": "Ana Sayfa",
+      "features": "Özellikler",
+      "languages": "Diller",
+      "pricing": "Fiyatlandırma",
+      "contact": "İletişim",
+      "dashboard": "Kontrol Paneli",
+      "tryFree": "Ücretsiz Dene",
+      "signIn": "Giriş Yap",
+      "signOut": "Çıkış Yap"
+    }
+  },
+  "DE": {
+    "nav": {
+      "home": "Startseite",
+      "features": "Funktionen",
+      "languages": "Sprachen",
+      "pricing": "Preise",
+      "contact": "Kontakt",
+      "dashboard": "Dashboard",
+      "tryFree": "Kostenlos Testen",
+      "signIn": "Anmelden",
+      "signOut": "Abmelden"
+    }
+  },
+  "FR": {
+    "nav": {
+      "home": "Accueil",
+      "features": "Fonctionnalités",
+      "languages": "Langues",
+      "pricing": "Tarifs",
+      "contact": "Contact",
+      "dashboard": "Tableau de bord",
+      "tryFree": "Essai Gratuit",
+      "signIn": "Se Connecter",
+      "signOut": "Se Déconnecter"
+    }
+  },
+  "FA": {
+    "nav": {
+      "home": "خانه",
+      "features": "ویژگی‌ها",
+      "languages": "زبان‌ها",
+      "pricing": "قیمت‌گذاری",
+      "contact": "تماس با ما",
+      "dashboard": "داشبورد",
+      "tryFree": "امتحان رایگان",
+      "signIn": "ورود",
+      "signOut": "خروج"
+    }
+  }
+}
