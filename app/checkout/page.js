@@ -24,7 +24,12 @@ var methods = [
 var languageEntries = Object.entries(languageMeta || {});
 var languagesList = languageEntries.map(function(entry) {
   var val = entry[1];
-  return { code: entry[0], name: typeof val === 'object' ? val?.name : val, flag: typeof val === 'object' ? val?.flag : '🌐', direction: typeof val === 'object' ? val?.direction : 'ltr' };
+  return { 
+    code: entry[0], 
+    name: typeof val === 'object' ? val?.name : val, 
+    flag: typeof val === 'object' ? val?.flag : '🌐', 
+    direction: typeof val === 'object' ? val?.direction : 'ltr' 
+  };
 });
 
 function safeArray(val) {
@@ -46,8 +51,7 @@ export default function CheckoutPage() {
   var dir = getDirection(lang);
   
   var t = function(key) { 
-    var res = getTranslation(lang, key); 
-    return res;
+    return getTranslation(lang, key);
   };
   
   var current = methods.find(function(m) { return m.id === method; }) || methods[0];
