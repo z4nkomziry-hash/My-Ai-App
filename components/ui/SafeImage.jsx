@@ -128,8 +128,8 @@ export function LogoImage({ width = 40, height = 40, variant = 'default', classN
 export function DeveloperImage({ width = 128, height = 128, className = '' }) {
   return (
     <SafeImage
-      src="/assets/developer/zaniyar.jpg"
-      fallbackSrc="/icon.png"
+      src="/assets/developer/zaniyar.jpeg"
+      fallbackSrc="/assets/developer/zaniyar.jpg"
       alt="Zaniyar Al-Mzurii - Developer"
       type="developer"
       width={width}
