@@ -67,11 +67,6 @@ const socialButtons = [
 const demoTabs = ['generate', 'rewrite', 'grammar', 'translate'];
 
 // ============================================================
-// DEVELOPER IMAGE PATH (Updated to .jpeg)
-// ============================================================
-const DEVELOPER_IMAGE_PATH = '/assets/developer/zaniyar.jpeg';
-
-// ============================================================
 // ICON RENDERER
 // ============================================================
 
@@ -99,7 +94,7 @@ function ContactIcon({ type, className }) {
 }
 
 // ============================================================
-// SAFE IMAGE COMPONENT
+// SAFE IMAGE COMPONENT (for logo only)
 // ============================================================
 
 function SafeImage({ src, fallbackSrc, alt, type, width, height, className }) {
@@ -117,15 +112,6 @@ function SafeImage({ src, fallbackSrc, alt, type, width, height, className }) {
           style={{ width, height }}
         >
           <Sparkles className="text-white" style={{ width: width * 0.45, height: height * 0.45 }} />
-        </div>
-      );
-    }
-    if (type === 'developer') {
-      return (
-        <div
-          className="bg-gradient-to-r from-purple-600 via-cyan-500 to-green-400 rounded-full flex items-center justify-center w-full h-full"
-        >
-          <span className="text-3xl font-bold text-white">ZA</span>
         </div>
       );
     }
@@ -552,7 +538,7 @@ export default function LandingPage() {
 
       {/* ========================================== */}
       {/* DEVELOPER PROFILE SECTION                   */}
-      {/* UPDATED: Uses /assets/developer/zaniyar.jpeg */}
+      {/* Uses standard <img> tag for direct loading  */}
       {/* ========================================== */}
       <section className="py-20 bg-[#0B1120]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -565,18 +551,18 @@ export default function LandingPage() {
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-cyan-500/20 to-green-400/20 rounded-3xl blur-3xl" />
             <div className="relative card p-8 sm:p-10 lg:p-12 border-purple-500/30">
               <div className="flex flex-col md:flex-row items-center gap-8">
-                {/* Developer Avatar — Using /assets/developer/zaniyar.jpeg */}
+                {/* Developer Avatar — Direct <img> tag */}
                 <div className="relative flex-shrink-0">
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-cyan-500 to-green-400 rounded-full blur-xl opacity-60 animate-pulse" />
                   <div className="relative w-32 h-32 rounded-full bg-gradient-to-r from-purple-600 via-cyan-500 to-green-400 p-[3px] animate-glow">
-                    <SafeImage
-                      src={DEVELOPER_IMAGE_PATH}
-                      fallbackSrc="/icon.png"
+                    <img
+                      src="/assets/developer/zaniyar.jpeg"
                       alt="Zaniyar Al-Mzurii - Full-Stack Developer & AI Engineer"
-                      type="developer"
-                      width={128}
-                      height={128}
-                      className="w-full h-full rounded-full object-cover bg-[#111827]"
+                      className="w-full h-full rounded-full object-cover relative z-10 bg-[#111827]"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = "/assets/developer/zaniyar.jpg";
+                      }}
                     />
                   </div>
                   <div className="absolute bottom-2 right-2 w-5 h-5 bg-green-400 rounded-full border-3 border-[#111827] animate-pulse" />
